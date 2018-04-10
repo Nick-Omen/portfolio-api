@@ -1,39 +1,39 @@
-package project
+package tag
 
 import (
+	"github.com/gorilla/mux"
 	"net/http"
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"strconv"
 )
 
 func SetRoutes(router *mux.Router) {
-	router.HandleFunc("/project/", getProjects).Methods("GET")
-	router.HandleFunc("/project/{id}/", getProject).Methods("GET")
-	router.HandleFunc("/project/", createProject).Methods("POST")
-	router.HandleFunc("/project/{id}/", updateProject).Methods("PUT")
-	router.HandleFunc("/project/{id}/", deleteProject).Methods("DELETE")
+	router.HandleFunc("/tag/", getTags).Methods("GET")
+	router.HandleFunc("/tag/{id}/", getTag).Methods("GET")
+	router.HandleFunc("/tag/", createTag).Methods("POST")
+	router.HandleFunc("/tag/{id}/", updateTag).Methods("PUT")
+	router.HandleFunc("/tag/{id}/", deleteTag).Methods("DELETE")
 }
 
-func getProjects(w http.ResponseWriter, r *http.Request) {
-	projects, err := m.GetAll()
+func getTags(w http.ResponseWriter, r *http.Request) {
+	tags, err := m.GetAll()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err.Error())
 	} else {
-		json.NewEncoder(w).Encode(projects)
+		json.NewEncoder(w).Encode(tags)
 	}
 }
 
-func getProject(w http.ResponseWriter, r *http.Request) {
+func getTag(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
+	
 	if id, ok := vars["id"]; ok {
 		id, err := strconv.Atoi(id)
 		if err == nil {
-			project, err := m.GetOne(id)
+			tag, err := m.GetOne(id)
 			if err == nil {
-				json.NewEncoder(w).Encode(project)
+				json.NewEncoder(w).Encode(tag)
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 				json.NewEncoder(w).Encode(err.Error())
@@ -44,31 +44,31 @@ func getProject(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func createProject(w http.ResponseWriter, r *http.Request) {
-	project := &Project{}
-	_ = json.NewDecoder(r.Body).Decode(project)
-	project, err := m.Create(project)
+func createTag(w http.ResponseWriter, r *http.Request) {
+	tag := &Tag{}
+	_ = json.NewDecoder(r.Body).Decode(&tag)
+	tag, err := m.Create(tag)
 	if err == nil {
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(project)
+		json.NewEncoder(w).Encode(tag)
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err.Error())
 	}
 }
 
-func updateProject(w http.ResponseWriter, r *http.Request) {
+func updateTag(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if id, ok := vars["id"]; ok {
 		id, err := strconv.Atoi(id)
 		if err == nil {
-			project, err := m.GetOne(id)
+			tag, err := m.GetOne(id)
 			if err == nil {
-				json.NewDecoder(r.Body).Decode(project)
-				project, err = m.Update(project)
+				json.NewDecoder(r.Body).Decode(tag)
+				tag, err = m.Update(tag)
 				if err == nil {
-					json.NewEncoder(w).Encode(project)
+					json.NewEncoder(w).Encode(tag)
 				} else {
 					w.WriteHeader(http.StatusBadRequest)
 					json.NewEncoder(w).Encode(err.Error())
@@ -81,15 +81,15 @@ func updateProject(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deleteProject(w http.ResponseWriter, r *http.Request) {
+func deleteTag(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	if id, ok := vars["id"]; ok {
 		id, err := strconv.Atoi(id)
 		if err == nil {
-			project, err := m.GetOne(id)
+			tag, err := m.GetOne(id)
 			if err == nil {
-				deleted := m.Delete(project)
+				deleted := m.Delete(tag)
 				if !deleted {
 					w.WriteHeader(http.StatusBadRequest)
 				}
