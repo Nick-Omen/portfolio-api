@@ -13,6 +13,7 @@ type Tag struct {
 
 type Filter struct {
 	IDList []int
+	IDListEnabled bool
 }
 
 type Manager struct {
@@ -47,7 +48,7 @@ func (m Manager) GetOne(id int) (*Tag, error) {
 func (m Manager) GetAll(filter Filter) (*[]Tag, error) {
 	tags := &[]Tag{}
 	switch {
-	case len(filter.IDList) > 0:
+	case filter.IDListEnabled:
 		M.DB.Where(filter.IDList).Find(&tags)
 		break
 	default:

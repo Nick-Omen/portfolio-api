@@ -59,7 +59,7 @@ func (m Manager) Create(p *Project) (*Project, error) {
 	}
 	M.DB.Create(p)
 
-	tags, _ := tag.M.GetAll(tag.Filter{IDList: p.TagIDs})
+	tags, _ := tag.M.GetAll(tag.Filter{IDList: p.TagIDs, IDListEnabled: true})
 	for _, t := range *tags {
 		M.DB.Model(p).Association("Tags").Append(t)
 	}
