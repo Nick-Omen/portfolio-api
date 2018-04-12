@@ -16,7 +16,7 @@ func SetRoutes(router *mux.Router) {
 }
 
 func getTags(w http.ResponseWriter, r *http.Request) {
-	tags, err := m.GetAll()
+	tags, err := M.GetAll(Filter{})
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err.Error())
@@ -31,7 +31,7 @@ func getTag(w http.ResponseWriter, r *http.Request) {
 	if id, ok := vars["id"]; ok {
 		id, err := strconv.Atoi(id)
 		if err == nil {
-			tag, err := m.GetOne(id)
+			tag, err := M.GetOne(id)
 			if err == nil {
 				json.NewEncoder(w).Encode(tag)
 			} else {
@@ -47,7 +47,7 @@ func getTag(w http.ResponseWriter, r *http.Request) {
 func createTag(w http.ResponseWriter, r *http.Request) {
 	tag := &Tag{}
 	_ = json.NewDecoder(r.Body).Decode(&tag)
-	tag, err := m.Create(tag)
+	tag, err := M.Create(tag)
 	if err == nil {
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(tag)
@@ -63,10 +63,10 @@ func updateTag(w http.ResponseWriter, r *http.Request) {
 	if id, ok := vars["id"]; ok {
 		id, err := strconv.Atoi(id)
 		if err == nil {
-			tag, err := m.GetOne(id)
+			tag, err := M.GetOne(id)
 			if err == nil {
 				json.NewDecoder(r.Body).Decode(tag)
-				tag, err = m.Update(tag)
+				tag, err = M.Update(tag)
 				if err == nil {
 					json.NewEncoder(w).Encode(tag)
 				} else {
@@ -87,9 +87,9 @@ func deleteTag(w http.ResponseWriter, r *http.Request) {
 	if id, ok := vars["id"]; ok {
 		id, err := strconv.Atoi(id)
 		if err == nil {
-			tag, err := m.GetOne(id)
+			tag, err := M.GetOne(id)
 			if err == nil {
-				deleted := m.Delete(tag)
+				deleted := M.Delete(tag)
 				if !deleted {
 					w.WriteHeader(http.StatusBadRequest)
 				}

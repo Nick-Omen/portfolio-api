@@ -7,8 +7,8 @@ import (
 )
 
 func SetDatabase(db *gorm.DB) {
-	m.DB = db
-	m.DB.AutoMigrate(&Project{})
+	M.DB = db
+	M.DB.AutoMigrate(&Project{})
 }
 
 type Manager struct {
@@ -24,19 +24,22 @@ type managerInterface interface {
 }
 
 type Project struct {
-	ID int `json:"id";gorm:"primary_key"`
-	Title string `json:"title";gorm:"type:varchar(100);not null"`
-	Description string `json:"description";gorm:"type:varchar(255);default:''"`
-	Link string `json:"link";gorm:"type:varchar(100);default:''"`
-	Tags []tag.Tag `json:"tags";gorm:"many2many:tags"`
+	ID int `gorm:"primary_key" json:"id"`
+	Title string `gorm:"type:varchar(100);not null" json:"title"`
+	Description string `gorm:"type:varchar(255);default:''" json:"description"`
+	Link string `gorm:"type:varchar(100);default:''" json:"link"`
+	Tags []tag.Tag `gorm:"many2many:project_tags" json:"tags"`
+	TagIDs []int `gorm:"-" json:"tag_ids"`
 }
 
-var m Manager
+var M Manager
 
 func (m Manager) GetOne(id int) (*Project, error) {
 	project := &Project{}
-	m.DB.Find(&project, id)
+	tags := &[]tag.Tag{}
+	M.DB.Find(project, id).Related(tags, "Tags")
 	if project.ID == id {
+		project.Tags = *tags
 		return project, nil
 	}
 	return project, errors.New("Project not found. ")
@@ -44,26 +47,55 @@ func (m Manager) GetOne(id int) (*Project, error) {
 
 func (m Manager) GetAll() (*[]Project, error) {
 	projects := &[]Project{}
-	m.DB.Find(&projects)
+	tags := &[]tag.Tag{}
+	M.DB.Find(projects).Related(tags)
 	return projects, nil
 }
 
 func (m Manager) Create(p *Project) (*Project, error) {
-	created := m.DB.NewRecord(p)
+	created := M.DB.NewRecord(p)
 	if !created {
 		return p, errors.New("Project is not created. ")
 	}
-	m.DB.Create(&p)
-	return p, nil
+	M.DB.Create(p)
+
+	tags, _ := tag.M.GetAll(tag.Filter{IDList: p.TagIDs})
+	for _, t := range *tags {
+		M.DB.Model(p).Association("Tags").Append(t)
+	}
+
+	p, err := M.GetOne(p.ID)
+	if err == nil {
+		return p, nil
+	}
+	return p, err
 }
 
 func (m Manager) Update(p *Project) (*Project, error) {
-	m.DB.Save(&p)
-	return p, nil
+	M.DB.Save(p)
+
+	newTags, _ := tag.M.GetAll(tag.Filter{IDList: p.TagIDs})
+	M.DB.Model(p).Association("Tags").Clear()
+	for _, t := range *newTags {
+		M.DB.Model(p).Association("Tags").Append(t)
+	}
+
+	p, err := M.GetOne(p.ID)
+	if err == nil {
+		return p, nil
+	}
+	return p, err
+}
+
+func (m Manager) GetTags(p *Project) (*[]tag.Tag, error) {
+	tags := &[]tag.Tag{}
+	M.DB.Model(p).Related(tags, "Tags")
+	return tags, nil
 }
 
 func (m Manager) Delete(p *Project) bool {
-	m.DB.Delete(&p)
+	M.DB.Model(p).Association("Tags").Clear()
+	M.DB.Delete(&p)
 	return true
 }
 

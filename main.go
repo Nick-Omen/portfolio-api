@@ -24,6 +24,7 @@ func shareRouter(router *mux.Router)  {
 func startProduction() {
 	router := mux.NewRouter()
 	db := storage.Connect("api")
+	db.LogMode("true" == os.Getenv("DEV"))
 	shareConnection(db)
 	shareRouter(router)
 

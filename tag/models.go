@@ -6,9 +6,13 @@ import (
 )
 
 type Tag struct {
-	ID int `json:"id";gorm:"primary_key"`
+	ID    int    `json:"id";gorm:"primary_key"`
 	Title string `json:"title";gorm:"type:varchar(100);not null"`
-	Link string `json:"link";gorm:"type:varchar(100);default:''"`
+	Link  string `json:"link";gorm:"type:varchar(100);default:''"`
+}
+
+type Filter struct {
+	IDList []int
 }
 
 type Manager struct {
@@ -16,23 +20,23 @@ type Manager struct {
 }
 
 type managerInterface interface {
-	GetAll() (*[]Tag, error)
+	GetAll(Filter) (*[]Tag, error)
 	GetOne(int) (*Tag, error)
 	Create(*Tag) (*Tag, error)
 	Update(*Tag) (*Tag, error)
 	Delete(*Tag) bool
 }
 
-var m Manager
+var M Manager
 
 func SetDatabase(db *gorm.DB) {
-	m.DB = db
-	m.DB.AutoMigrate(&Tag{})
+	M.DB = db
+	M.DB.AutoMigrate(&Tag{})
 }
 
 func (m Manager) GetOne(id int) (*Tag, error) {
 	tag := &Tag{}
-	m.DB.Find(&tag, id)
+	M.DB.Find(&tag, id)
 
 	if tag.ID == id {
 		return tag, nil
@@ -40,28 +44,35 @@ func (m Manager) GetOne(id int) (*Tag, error) {
 	return tag, errors.New("Tag not found. ")
 }
 
-func (m Manager) GetAll() (*[]Tag, error) {
+func (m Manager) GetAll(filter Filter) (*[]Tag, error) {
 	tags := &[]Tag{}
-	m.DB.Find(&tags)
+	switch {
+	case len(filter.IDList) > 0:
+		M.DB.Where(filter.IDList).Find(&tags)
+		break
+	default:
+		M.DB.Find(&tags)
+		break
+	}
 	return tags, nil
 }
 
 func (m Manager) Create(t *Tag) (*Tag, error) {
-	created := m.DB.NewRecord(t)
+	created := M.DB.NewRecord(t)
 	if !created {
 		return t, errors.New("Tag is not created. ")
 	}
-	m.DB.Create(&t)
+	M.DB.Create(&t)
 	return t, nil
 }
 
 func (m Manager) Update(t *Tag) (*Tag, error) {
-	m.DB.Save(&t)
+	M.DB.Save(&t)
 	return t, nil
 }
 
 func (m Manager) Delete(t *Tag) bool {
-	m.DB.Delete(&t)
+	M.DB.Delete(&t)
 	return true
 }
 
