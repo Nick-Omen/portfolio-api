@@ -6,9 +6,9 @@ import (
 )
 
 type Tag struct {
-	ID    int    `json:"id";gorm:"primary_key"`
-	Title string `json:"title";gorm:"type:varchar(100);not null"`
-	Link  string `json:"link";gorm:"type:varchar(100);default:''"`
+	ID    int    `json:"id" gorm:"primary_key"`
+	Title string `json:"title" gorm:"type:varchar(100);not null" valid:"required~title|This field is required,length(2|100)"`
+	Link  string `json:"link" gorm:"type:varchar(100);default:''" valid:"optional,url~link|This field only accept links. For example: https://www.example.com/"`
 }
 
 type Filter struct {
@@ -49,7 +49,9 @@ func (m Manager) GetAll(filter Filter) (*[]Tag, error) {
 	tags := &[]Tag{}
 	switch {
 	case filter.IDListEnabled:
-		M.DB.Where(filter.IDList).Find(&tags)
+		if len(filter.IDList) > 0 {
+			M.DB.Where(filter.IDList).Find(&tags)
+		}
 		break
 	default:
 		M.DB.Find(&tags)

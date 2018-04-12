@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"encoding/json"
 	"strconv"
+	"github.com/asaskevich/govalidator"
+	"nick_omen_api/server"
 )
 
 func SetRoutes(router *mux.Router) {
@@ -46,14 +48,20 @@ func getTag(w http.ResponseWriter, r *http.Request) {
 
 func createTag(w http.ResponseWriter, r *http.Request) {
 	tag := &Tag{}
-	_ = json.NewDecoder(r.Body).Decode(&tag)
-	tag, err := M.Create(tag)
-	if err == nil {
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(tag)
+	_ = json.NewDecoder(r.Body).Decode(tag)
+	valid, err := govalidator.ValidateStruct(*tag)
+
+	if !valid {
+		server.ResponseValidationError(err.Error(), w)
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err.Error())
+		tag, err = M.Create(tag)
+		if err == nil {
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(tag)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(err.Error())
+		}
 	}
 }
 
@@ -66,12 +74,18 @@ func updateTag(w http.ResponseWriter, r *http.Request) {
 			tag, err := M.GetOne(id)
 			if err == nil {
 				json.NewDecoder(r.Body).Decode(tag)
-				tag, err = M.Update(tag)
-				if err == nil {
-					json.NewEncoder(w).Encode(tag)
+				valid, err := govalidator.ValidateStruct(*tag)
+
+				if !valid {
+					server.ResponseValidationError(err.Error(), w)
 				} else {
-					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(err.Error())
+					tag, err = M.Update(tag)
+					if err == nil {
+						json.NewEncoder(w).Encode(tag)
+					} else {
+						w.WriteHeader(http.StatusBadRequest)
+						json.NewEncoder(w).Encode(err.Error())
+					}
 				}
 			} else {
 				w.WriteHeader(http.StatusNotFound)

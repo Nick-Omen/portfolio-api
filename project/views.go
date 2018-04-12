@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"strconv"
+	"github.com/asaskevich/govalidator"
+	"nick_omen_api/server"
 )
 
 func SetRoutes(router *mux.Router) {
@@ -47,13 +49,19 @@ func getProject(w http.ResponseWriter, r *http.Request) {
 func createProject(w http.ResponseWriter, r *http.Request) {
 	project := &Project{}
 	_ = json.NewDecoder(r.Body).Decode(project)
-	project, err := M.Create(project)
-	if err == nil {
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(project)
+	valid, err := govalidator.ValidateStruct(project)
+
+	if !valid {
+		server.ResponseValidationError(err.Error(), w)
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err.Error())
+		project, err = M.Create(project)
+		if err == nil {
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(project)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(err.Error())
+		}
 	}
 }
 
@@ -66,12 +74,18 @@ func updateProject(w http.ResponseWriter, r *http.Request) {
 			project, err := M.GetOne(id)
 			if err == nil {
 				json.NewDecoder(r.Body).Decode(project)
-				project, err = M.Update(project)
-				if err == nil {
-					json.NewEncoder(w).Encode(project)
+				valid, err := govalidator.ValidateStruct(project)
+
+				if !valid {
+					server.ResponseValidationError(err.Error(), w)
 				} else {
-					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(err.Error())
+					project, err = M.Update(project)
+					if err == nil {
+						json.NewEncoder(w).Encode(project)
+					} else {
+						w.WriteHeader(http.StatusBadRequest)
+						json.NewEncoder(w).Encode(err.Error())
+					}
 				}
 			} else {
 				w.WriteHeader(http.StatusNotFound)

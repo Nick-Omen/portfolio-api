@@ -25,9 +25,9 @@ type managerInterface interface {
 
 type Project struct {
 	ID int `gorm:"primary_key" json:"id"`
-	Title string `gorm:"type:varchar(100);not null" json:"title"`
-	Description string `gorm:"type:varchar(255);default:''" json:"description"`
-	Link string `gorm:"type:varchar(100);default:''" json:"link"`
+	Title string `gorm:"type:varchar(100);not null" json:"title" valid:"required~title|This field is required,length(2|100)"`
+	Description string `gorm:"type:varchar(255);default:''" json:"description" valid:"optional,length(20|255)~description|This field length should be from 20 to 255"`
+	Link string `gorm:"type:varchar(100);default:''" json:"link" valid:"optional,url~link|This field only accept links. For example: https://www.example.com/"`
 	Tags []tag.Tag `gorm:"many2many:project_tags" json:"tags"`
 	TagIDs []int `gorm:"-" json:"tag_ids"`
 }

@@ -48,7 +48,7 @@ func TestCreateProjectWithAllFields(t *testing.T) {
 	g.Describe("Create project with all fields", func() {
 		res, _ := resty.R().
 			SetHeader("Content-Type", "application/json").
-			SetBody(`{"title":"Portfolio","description":"Description","link":"https://www.nick-omen.com/"}`).
+			SetBody(`{"title":"Portfolio","description":"Description asdfajkljalskdjf lajsdlkfj alsjdfljka sldkfjla","link":"https://www.nick-omen.com/"}`).
 			Post(testUrl)
 		project := &Project{}
 		g.It("Should have no errors when parse body", func() {
@@ -64,8 +64,8 @@ func TestCreateProjectWithAllFields(t *testing.T) {
 		g.It("Should have id not equal 0", func() {
 			g.Assert(project.ID == 0).IsFalse()
 		})
-		g.It("Should have description `Description`", func() {
-			g.Assert(project.Description).Equal("Description")
+		g.It("Should have description", func() {
+			g.Assert(project.Description).Equal("Description asdfajkljalskdjf lajsdlkfj alsjdfljka sldkfjla")
 		})
 		g.It("Should have link `https://www.nick-omen.com/`", func() {
 			g.Assert(project.Link).Equal("https://www.nick-omen.com/")

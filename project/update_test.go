@@ -22,7 +22,7 @@ func TestUpdateProject(t *testing.T) {
 	g.Describe("Update project fields", func() {
 		res, _ = resty.R().
 			SetHeader("Content-Type", "application/json").
-			SetBody(`{"title":"Edited","description":"descr","link":"http://test.com/"}`).
+			SetBody(`{"title":"Edited","description":"Description ajshfkajhsk jdhafkhs dkhfaksjhdkfahsdf","link":"http://test.com/"}`).
 			Put(fmt.Sprintf("%s%d/", testUrl, createdId))
 
 		g.It("Should have no errors when parse body", func() {
@@ -35,8 +35,8 @@ func TestUpdateProject(t *testing.T) {
 		g.It(fmt.Sprintf("Should equal %d", createdId), func() {
 			g.Assert(project.ID).Equal(createdId)
 		})
-		g.It("Should have description `descr`", func() {
-			g.Assert(project.Description).Equal("descr")
+		g.It("Should have description", func() {
+			g.Assert(project.Description).Equal("Description ajshfkajhsk jdhafkhs dkhfaksjhdkfahsdf")
 		})
 		g.It("Should have link `http://test.com/`", func() {
 			g.Assert(project.Link).Equal("http://test.com/")
