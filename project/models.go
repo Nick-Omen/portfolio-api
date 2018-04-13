@@ -59,7 +59,7 @@ func (m Manager) Create(p *Project) (*Project, error) {
 	}
 	M.DB.Create(p)
 
-	tags, _ := tag.M.GetAll(tag.Filter{IDList: p.TagIDs, IDListEnabled: true})
+	tags, _ := tag.M.GetAll(tag.Filter{"tag_ids": p.TagIDs})
 	for _, t := range *tags {
 		M.DB.Model(p).Association("Tags").Append(t)
 	}
@@ -74,7 +74,7 @@ func (m Manager) Create(p *Project) (*Project, error) {
 func (m Manager) Update(p *Project) (*Project, error) {
 	M.DB.Save(p)
 
-	newTags, _ := tag.M.GetAll(tag.Filter{IDList: p.TagIDs, IDListEnabled: true})
+	newTags, _ := tag.M.GetAll(tag.Filter{"tag_ids": p.TagIDs})
 	M.DB.Model(p).Association("Tags").Clear()
 	for _, t := range *newTags {
 		M.DB.Model(p).Association("Tags").Append(t)

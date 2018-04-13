@@ -11,14 +11,11 @@ type Tag struct {
 	Link  string `json:"link" gorm:"type:varchar(100);default:''" valid:"optional,url~link|This field only accept links. For example: https://www.example.com/"`
 }
 
-type Filter struct {
-	IDList []int
-	IDListEnabled bool
-}
-
 type Manager struct {
 	DB *gorm.DB
 }
+
+type Filter map[string][]int
 
 type managerInterface interface {
 	GetAll(Filter) (*[]Tag, error)
@@ -47,16 +44,19 @@ func (m Manager) GetOne(id int) (*Tag, error) {
 
 func (m Manager) GetAll(filter Filter) (*[]Tag, error) {
 	tags := &[]Tag{}
-	switch {
-	case filter.IDListEnabled:
-		if len(filter.IDList) > 0 {
-			M.DB.Where(filter.IDList).Find(&tags)
+
+	idList, idListOk := filter["tag_ids"]
+
+	if idListOk {
+		if len(idList) > 0 {
+			M.DB.Where(idList).Find(&tags)
 		}
-		break
-	default:
-		M.DB.Find(&tags)
-		break
 	}
+
+	if !idListOk {
+		M.DB.Find(&tags)
+	}
+
 	return tags, nil
 }
 
